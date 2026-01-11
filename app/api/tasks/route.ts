@@ -3,33 +3,81 @@ import { NextResponse } from "next/server";
 
 // GET /api/tasks
 export async function GET() {
-    const result = await pool.query("SELECT * FROM tasks");
-    return NextResponse.json({ ok: true, message: "Ok", data: result.rows }, { status: 200 });
+    // error handling
+    try {
+        const result = await pool.query("SELECT * FROM tasks ORDER BY id");
+        return NextResponse.json({ ok: true, message: "Ok", data: result.rows }, { status: 200 });
+    } catch (error) {
+        return NextResponse.json({ ok: false, message: "Error fetching tasks" }, { status: 500 });
+    }
 }
 
 // POST /api/tasks
 export async function POST(req: Request) {
-    const body = await req.json();
-    const { title, description, projectId, assignee } = body;
+    // error handling
+    try{
+        const body = await req.json();
+        const { title, description, projectId, assignee } = body;
 
-    const result = await pool.query("INSERT INTO tasks (title, description, status, projectId, assignee) VALUES ($1, $2, $3, $4, $5) RETURNING *", [title, description, 'todo', projectId, assignee ]);
-    return NextResponse.json({ ok: true, message: "Ok", data: result.rows[0] }, { status: 201 });
+        // validations
+        if (!projectId) {
+            return NextResponse.json({ ok: false, message: "Project is required" }, { status: 400 });
+        }
+        if (!title || title.trim().length === 0) {
+            return NextResponse.json({ ok: false, message: "Title is required" }, { status: 400 });
+        }
+        if (!assignee || assignee.trim().length === 0) {
+            return NextResponse.json({ ok: false, message: "Assignee is required" }, { status: 400 });
+        }
+
+        const result = await pool.query("INSERT INTO tasks (title, description, status, projectId, assignee) VALUES ($1, $2, $3, $4, $5) RETURNING *", [title, description, 'todo', projectId, assignee ]);
+        if (result.rowCount === 0) {
+            return NextResponse.json({ ok: false, message: "Task not found" }, { status: 404 });
+        }
+        return NextResponse.json({ ok: true, message: "Task created", data: result.rows[0] }, { status: 201 });
+    } catch (error) {
+        return NextResponse.json({ ok: false, message: "Error creating task" }, { status: 500 });
+    }
 }
 
 // PUT /api/tasks
 export async function PUT(req: Request) {
-    const body = await req.json();
-    const { id, status } = body;
+    try {
+        const body = await req.json();
+        const { id, status } = body;
 
-    const result = await pool.query("UPDATE tasks SET status = $1, updatedAt = NOW() WHERE id = $2", [status, id]);
-    return NextResponse.json({ ok: true, message: "Ok" }, { status: 200 });
+        // validations
+        if(!['todo','in_progress','done'].includes(status)){
+            return NextResponse.json({ message: 'Invalid status' }, { status: 400 });
+        }
+
+        const result = await pool.query("UPDATE tasks SET status = $1, updatedAt = NOW() WHERE id = $2", [status, id]);
+        if (result.rowCount === 0) {
+            return NextResponse.json({ ok: false, message: "Task not found" }, { status: 404 });
+        }
+        return NextResponse.json({ ok: true, message: "Task updated" }, { status: 200 });
+    } catch (error) {
+        return NextResponse.json({ ok: false, message: "Error updating task" }, { status: 500 });
+    }
 }
 
 // DELETE /api/tasks
 export async function DELETE(req: Request) {
-    const body = await req.json();
-    const { id } = body;
+    try {
+        const body = await req.json();
+        const { id } = body;
 
-    const result = await pool.query("DELETE FROM tasks WHERE id = $1", [id]);
-    return NextResponse.json({ ok: true, message: "Ok" }, { status: 200 });
+        // validations
+        if (!id) {
+            return NextResponse.json({ message: 'id is required' }, { status: 400 });
+        }
+
+        const result = await pool.query("DELETE FROM tasks WHERE id = $1", [id]);
+        if (result.rowCount === 0) {
+            return NextResponse.json({ ok: false, message: "Task not found" }, { status: 404 });
+        }
+        return NextResponse.json({ ok: true, message: "Task deleted" }, { status: 200 });
+    } catch (error) {
+        return NextResponse.json({ ok: false, message: "Error deleting task" }, { status: 500 });
+    }
 }
