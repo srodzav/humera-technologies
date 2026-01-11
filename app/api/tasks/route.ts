@@ -1,11 +1,17 @@
 import { pool } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET /api/tasks
-export async function GET() {
+// GET /api/tasks?projectId=$1
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const projectId = searchParams.get("projectId");
+
     // error handling
     try {
-        const result = await pool.query("SELECT * FROM tasks ORDER BY id");
+        const result = await pool.query("SELECT * FROM tasks WHERE projectId = $1 ORDER BY id", [projectId]);
+        if(result.rowCount === 0){
+            return NextResponse.json({ ok: false, message: "Project not found" }, { status: 404 });
+        }
         return NextResponse.json({ ok: true, message: "Ok", data: result.rows }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ ok: false, message: "Error fetching tasks" }, { status: 500 });
