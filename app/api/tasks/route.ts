@@ -6,12 +6,13 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get("projectId");
 
+    if (!projectId) {
+        return NextResponse.json({ ok: false, message: "Project is required" }, { status: 400 });
+    }
+
     // error handling
     try {
         const result = await pool.query("SELECT * FROM tasks WHERE projectId = $1 ORDER BY id", [projectId]);
-        if(result.rowCount === 0){
-            return NextResponse.json({ ok: false, message: "Project not found" }, { status: 404 });
-        }
         return NextResponse.json({ ok: true, message: "Ok", data: result.rows }, { status: 200 });
     } catch (error) {
         return NextResponse.json({ ok: false, message: "Error fetching tasks" }, { status: 500 });
