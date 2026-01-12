@@ -43,22 +43,29 @@ export default function ProjectsPage() {
     }
 
     return (
-        <div>
+        <div className="container">
             <h2>Project List</h2>
-            <div>
-                <input placeholder="Name" value={name} onChange={e=> setName(e.target.value)} />
+            <div className="columns">
+                <input className="input" placeholder="Name" value={name} onChange={e=> setName(e.target.value)} />
 
-                <button onClick={createProject}> Add Project </button>
+                <button className="btn btn-action" onClick={createProject}> Add Project </button>
             </div>
 
-            <ul>
+            {projects.length > 0 ? (
+            <ul className="table">
+                <li className="row-single header">
+                    <span> Name </span>
+                    <span> Created At </span>
+                    <span> Actions </span>
+                </li>
                 {projects.map((project: any) => (
-                    <li key={project.id}>
+                    <li className="row-single" key={project.id}>
                         <span> {project.name} </span>
-                        <Link href={`/tasks/${project.id}`}> View Tasks </Link>
+                        <span> {new Date(project.createdat).toLocaleString()} </span>
+                        <Link className="btn btn-primary" href={`/tasks/${project.id}`}> View Tasks </Link>
                     </li>
                 ))}
-            </ul>
+            </ul>) : (<p className="text-centered">No projects found. Please add a project.</p>)}
         </div>
     );
 }

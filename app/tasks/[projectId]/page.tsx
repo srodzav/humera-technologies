@@ -100,18 +100,20 @@ export default function TasksPage() {
     }
 
     return(
-        <div>
+        <div className="container">
+            <h1> Task Tracker </h1>
             <h2>Project Tasks</h2>
-            <div>
-                <input placeholder="Title" value={title} onChange={e=> setTitle(e.target.value)} />
-                <input placeholder="Description" value={description} onChange={e=> setDescription(e.target.value)} />
-                <input placeholder="Assignee" value={assignee} onChange={e=> setAssignee(e.target.value)} />
+            <div className="columns">
+                <input className="input" placeholder="Title" value={title} onChange={e=> setTitle(e.target.value)} />
+                <input className="input" placeholder="Description" value={description} onChange={e=> setDescription(e.target.value)} />
+                <input className="input" placeholder="Assignee" value={assignee} onChange={e=> setAssignee(e.target.value)} />
 
-                <button onClick={createTask}> Add Task </button>
+                <button className="btn btn-action" onClick={createTask}> Add Task </button>
             </div>
 
-            <ul>
-                <li>
+            {tasks.length > 0 ? (
+            <ul className="table">
+                <li className="row header">
                     <span> Title </span>
                     <span> Description </span>
                     <span> Assignee </span>
@@ -119,24 +121,23 @@ export default function TasksPage() {
                     <span> Actions </span>
                 </li>
                 {tasks.map((task: any) => (
-                    <li key={task.id}>
+                    <li className="row" key={task.id}>
                         <span> {task.title} </span>
                         <span> {task.description} </span>
                         <span> {task.assignee} </span>
 
-                        {/* <span> {task.status} </span> */}
-                        <select value={task.status} onChange={(e) => handleStatusChange(task.id, e)}>
+                        <select className="input" value={task.status} onChange={(e) => handleStatusChange(task.id, e)}>
                             <option value="todo">todo</option>
                             <option value="in_progress">in progress</option>
                             <option value="done">done</option>
                         </select>
 
-                        <button onClick={() => deleteTask(task.id)}> Delete </button>
+                        <button className="btn btn-warning" onClick={() => deleteTask(task.id)}> Delete </button>
                     </li>
                 ))}
-            </ul>
+            </ul>) : (<p className="text-centered">No tasks found for this project.</p>)}
 
-            <Link href={'/'}> Return Home </Link>
+            <Link className="btn btn-action" href={'/'}> Return Home </Link>
             
         </div>
     );
