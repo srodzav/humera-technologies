@@ -14,15 +14,22 @@ export default function TasksPage() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [assignee, setAssignee] = useState('');
+    const [filter, setFilter] = useState("all");
 
     const fetchTasks = useCallback(async () => {
-        const res = await fetch(`/api/tasks?projectId=${projectId}`);
+        let url = `/api/tasks?projectId=${projectId}`;
+
+        if(filter !== "all") {
+            url += `&status=${filter}`;
+        }
+
+        const res = await fetch(url);
         const data = await res.json();
         if(data.ok) {
             console.log(data.data);
             setTasks(data.data);
         }
-    }, [projectId]);
+    }, [projectId, filter]);
 
     useEffect(() => {
         fetchTasks();
@@ -99,6 +106,11 @@ export default function TasksPage() {
         updateTask(id, status);
     }
 
+    const handleFilterChange = (event: any) => {
+        const filter = event.target.value;
+        setFilter(filter);
+    }
+
     return(
         <div className="container">
             <h1> Task Tracker </h1>
@@ -109,6 +121,16 @@ export default function TasksPage() {
                 <input className="input" placeholder="Assignee" value={assignee} onChange={e=> setAssignee(e.target.value)} />
 
                 <button className="btn btn-action" onClick={createTask}> Add Task </button>
+            </div>
+
+            <div className="filter">
+                <span>Filter by: </span>
+                <select className="input" value={filter} onChange={(e) => {handleFilterChange(e)}}>
+                    <option value="all">All</option>
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
             </div>
 
             {tasks.length > 0 ? (
@@ -127,9 +149,9 @@ export default function TasksPage() {
                         <span> {task.assignee} </span>
 
                         <select className="input" value={task.status} onChange={(e) => handleStatusChange(task.id, e)}>
-                            <option value="todo">todo</option>
-                            <option value="in_progress">in progress</option>
-                            <option value="done">done</option>
+                            <option value="todo">To Do</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="done">Done</option>
                         </select>
 
                         <button className="btn btn-warning" onClick={() => deleteTask(task.id)}> Delete </button>
